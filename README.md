@@ -281,35 +281,6 @@ Sign_language_bridge/
 
 ---
 
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch:
-   ```bash
-   git checkout -b feature/improved-gesture-detection
-   ```
-3. Make your changes and commit them:
-   ```bash
-   git commit -m "Add feature description"
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature/improved-gesture-detection
-   ```
-5. Open a Pull Request.
-
----
-
-## Contributors
-
-Thanks to the following contributors for building and maintaining Sign Language Bridge:
-
-| Avatar | Contributor | GitHub Profile | Role |
-|:---:|---|---|---|
-| <img src="https://github.com/Saminathan6327.png?size=60" width="50px;" style="border-radius:50%;" alt="Saminathan Muruganantham" /> | **Saminathan Muruganantham** | [@Saminathan6327](https://github.com/Saminathan6327) | Project Author & Lead Maintainer |
-
----
-
 ## License
 
 This project is licensed under the **MIT License**.
