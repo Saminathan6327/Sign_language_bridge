@@ -300,6 +300,16 @@ Language_bridge/
 
 ---
 
+## Contributors
+
+Thanks to the following contributors for building and maintaining Language Bridge:
+
+| Avatar | Contributor | GitHub Profile | Role |
+|:---:|---|---|---|
+| <img src="https://github.com/vairaprakash-06.png?size=60" width="50px;" style="border-radius:50%;" alt="Saminathan Muruganantham" /> | **Saminathan Muruganantham** | [@vairaprakash-06](https://github.com/vairaprakash-06) / [@Saminathan6327](https://github.com/Saminathan6327) | Project Author & Lead Maintainer |
+
+---
+
 ## License
 
 This project is licensed under the **MIT License**.
@@ -308,4 +318,5 @@ This project is licensed under the **MIT License**.
 
 ## Author
 
-Created by [vairaprakash-06](https://github.com/vairaprakash-06).
+Created with ❤️ by [Saminathan Muruganantham (vairaprakash-06)](https://github.com/vairaprakash-06).
+
