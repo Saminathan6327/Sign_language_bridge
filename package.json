@@ -1,0 +1,29 @@
+{
+  "name": "sign-language-bridge-web",
+  "version": "1.0.0",
+  "description": "Real-time sign language interpreter kiosk web app using Vite, MediaPipe, and vanilla JavaScript.",
+  "type": "module",
+  "author": "Saminathan Muruganantham (https://github.com/Saminathan6327)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saminathan6327/Sign_language_bridge.git"
+  },
+  "homepage": "https://github.com/Saminathan6327/Sign_language_bridge#readme",
+  "bugs": {
+    "url": "https://github.com/Saminathan6327/Sign_language_bridge/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js",
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

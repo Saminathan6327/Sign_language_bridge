@@ -45,8 +45,8 @@ Language Bridge is an accessibility-focused web application that detects hand ge
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/vairaprakash-06/Language_bridge.git
-   cd Language_bridge
+   git clone https://github.com/Saminathan6327/Sign_language_bridge.git
+   cd Sign_language_bridge
    ```
 
 2. **Install Python dependencies:**
@@ -227,7 +227,7 @@ Press `q` or `ESC` in the video window to quit.
 ## Project Structure
 
 ```text
-Language_bridge/
+Sign_language_bridge/
 ├── server.js          # Express API server (port 3000, CORS, /predict endpoint)
 ├── predict.py         # Lightweight Python inference worker (SVM model loader + 42-pt heuristic)
 ├── index.html         # Web kiosk interface (HTML5 video, canvas overlay, Chatbox)
@@ -302,11 +302,11 @@ Language_bridge/
 
 ## Contributors
 
-Thanks to the following contributors for building and maintaining Language Bridge:
+Thanks to the following contributors for building and maintaining Sign Language Bridge:
 
 | Avatar | Contributor | GitHub Profile | Role |
 |:---:|---|---|---|
-| <img src="https://github.com/vairaprakash-06.png?size=60" width="50px;" style="border-radius:50%;" alt="Saminathan Muruganantham" /> | **Saminathan Muruganantham** | [@vairaprakash-06](https://github.com/vairaprakash-06) / [@Saminathan6327](https://github.com/Saminathan6327) | Project Author & Lead Maintainer |
+| <img src="https://github.com/Saminathan6327.png?size=60" width="50px;" style="border-radius:50%;" alt="Saminathan Muruganantham" /> | **Saminathan Muruganantham** | [@Saminathan6327](https://github.com/Saminathan6327) | Project Author & Lead Maintainer |
 
 ---
 
@@ -318,5 +318,5 @@ This project is licensed under the **MIT License**.
 
 ## Author
 
-Created with ❤️ by [Saminathan Muruganantham (vairaprakash-06)](https://github.com/vairaprakash-06).
+Created by [Saminathan Muruganantham](https://github.com/Saminathan6327).
 

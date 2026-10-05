@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# MediaPipe model binary (auto-downloaded by vision.py on first run)
+*.task
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / Vite web app
+node_modules/
+dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db

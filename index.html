@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BridgeSign Kiosk - Real-Time Sign Language Interpreter Terminal</title>
+  
+  <!-- Modern Typography (Plus Jakarta Sans, Noto Sans Tamil & JetBrains Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Tamil:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Pre-load MediaPipe Tasks Vision ESM Library via CDN -->
+  <script type="module">
+    try {
+      import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs").then((mod) => {
+        window.tasksVision = mod;
+        window.dispatchEvent(new CustomEvent("mediapipe-tasks-vision-ready"));
+      });
+    } catch (e) {
+      console.warn("CDN module pre-load deferred to main.js:", e);
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- KIOSK HEADER: PUBLIC ACCESSIBILITY TERMINAL -->
+  <header class="kiosk-header">
+    <div class="kiosk-brand">
+      <div class="kiosk-emblem" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+          <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+        </svg>
+      </div>
+      <div class="kiosk-titles">
+        <span class="kiosk-tagline" id="kiosk_tagline">Citizen Services • Accessibility Terminal</span>
+        <h1 class="kiosk-title" id="kiosk_title">Sign Language Bridge</h1>
+      </div>
+    </div>
+
+    <div class="kiosk-station-meta">
+      <!-- WORKABLE LANGUAGE SETTINGS SWITCHER (ENGLISH & TAMIL) -->
+      <div class="kiosk-lang-switcher" id="kiosk_lang_switcher" role="group" aria-label="Language Selector / மொழி தேர்வு">
+        <span class="lang-icon" aria-hidden="true">🌐</span>
+        <button type="button" class="lang-btn active" id="btn_lang_en" data-lang="en" title="Switch to English">English</button>
+        <button type="button" class="lang-btn" id="btn_lang_ta" data-lang="ta" title="தமிழுக்கு மாற்றவும்">தமிழ்</button>
+      </div>
+
+      <span class="kiosk-station-id" id="kiosk_station_id">Counter #04 • Public Service Hub</span>
+      <div id="kiosk_clock" class="kiosk-clock">--:--:--</div>
+      <div id="backend_badge" class="kiosk-status-badge standby">
+        <span class="kiosk-status-dot"></span>
+        <span id="backend_status_text">Connecting: localhost:3000</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN KIOSK DUAL-CONSOLE -->
+  <main class="kiosk-container">
+
+    <!-- LEFT STAGE: LIVE CAMERA FEED & 3D HAND TRACKING VIEWPORT -->
+    <section class="viewport-panel" aria-label="Webcam Video Feed and Hand Tracking Viewport">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <span class="panel-title" id="panel_title">Dual-Hand Vision Viewport</span>
+          <span id="reticle_badge" class="reticle-badge searching">Awaiting Hands</span>
+          <div class="hands-pill-group">
+            <span id="hand1_indicator" class="hand-chip offline">Hand 1: Cyan (21 pts)</span>
+            <span id="hand2_indicator" class="hand-chip offline">Hand 2: Amber (21 pts)</span>
+          </div>
+        </div>
+        <div class="telemetry-pill">
+          FPS: <strong id="fps_counter">--</strong>
+        </div>
+      </div>
+
+      <!-- VIDEO STAGE: <video> element with overlaid landmark <canvas> -->
+      <div class="video-stage">
+        <video id="webcam" class="mirrored" autoplay playsinline muted></video>
+        <canvas id="output_canvas" class="mirrored"></canvas>
+
+
+        <!-- Loading / Startup Overlay -->
+        <div id="loader_overlay" class="video-loader-overlay">
+          <div class="spinner"></div>
+          <span id="loader_status" class="loader-text">Initializing MediaPipe Tasks Vision...</span>
+        </div>
+      </div>
+
+      <!-- VIEWPORT CONTROLS BAR -->
+      <div class="viewport-controls">
+        <div class="button-group">
+          <button id="btn_toggle_cam" class="kiosk-btn active" title="Toggle Webcam">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 7l-7 5 7 5V7z"></path>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <span id="cam_btn_text">Camera Active</span>
+          </button>
+
+          <button id="btn_toggle_mirror" class="kiosk-btn active" title="Toggle Mirror View">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span id="btn_mirror_text">Mirror</span>
+          </button>
+
+          <button id="btn_toggle_landmarks" class="kiosk-btn active" title="Toggle Skeletal Mesh">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="4"></circle>
+              <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+              <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+            </svg>
+            <span id="btn_landmarks_text">Landmarks</span>
+          </button>
+
+          <button id="btn_toggle_pip" class="kiosk-btn" title="Keep Camera Viewable Throughout Interaction (Picture-in-Picture)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <rect x="12" y="9" width="8" height="6" rx="1" ry="1" fill="currentColor" fill-opacity="0.3"></rect>
+            </svg>
+            <span id="pip_btn_text">Float PiP</span>
+          </button>
+        </div>
+
+        <div class="telemetry-pill">
+          Points: <strong id="pts_counter">0/42</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT STAGE: RECOGNITION CONSOLE & REAL-TIME ACCESSIBILITY CHATBOX -->
+    <aside class="kiosk-console" aria-label="Sign Language Interpretation Console">
+
+      <!-- HERO PREDICTION CARD -->
+      <section class="prediction-card">
+        <div class="card-label">
+          <span id="calc_card_title">Real-Time Gesture Calculation</span>
+          <span id="prediction_rate_badge" style="color: var(--accent-cyan); font-family: var(--font-mono);">42-Point Real-Time Vision</span>
+        </div>
+
+        <div class="prediction-hero-box">
+          <div id="prediction_display" class="predicted-char empty">—</div>
+          <span id="prediction_subtext" class="prediction-subtext">Show one or both hands (42 points)</span>
+        </div>
+
+        <!-- Confidence Gauge Bar -->
+        <div class="confidence-wrapper">
+          <div class="confidence-header">
+            <span id="confidence_label">Calculation Accuracy</span>
+            <span id="confidence_percent" style="font-family: var(--font-mono);">0.0%</span>
+          </div>
+          <div class="confidence-track">
+            <div id="confidence_bar" class="confidence-fill"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REAL-TIME INTERACTIVE ACCESSIBILITY CHATBOX -->
+      <section class="chatbox-card" aria-label="Live Sign Language Chatbox">
+        <div class="chatbox-header">
+          <div class="chatbox-header-title">
+            <span class="chat-status-dot"></span>
+            <span id="chatbox_title">Real-Time Gesture Chatbox</span>
+          </div>
+          <div class="button-group">
+            <button id="btn_toggle_lang" class="kiosk-btn" title="Toggle Language: English / தமிழ்">
+              <span id="btn_toggle_lang_text">🌐 தமிழ்</span>
+            </button>
+            <button id="btn_toggle_tts" class="kiosk-btn active" title="Toggle Text-to-Speech Readout">
+              <span id="btn_toggle_tts_text">🔊 Speech ON</span>
+            </button>
+            <button id="btn_toggle_autosend" class="kiosk-btn active" title="Auto-post gesture when held for 1.2s">
+              <span id="btn_toggle_autosend_text">⚡ Auto-Send</span>
+            </button>
+            <button id="btn_export_chat" class="kiosk-btn" title="Download Chat Conversation">
+              <span id="btn_export_chat_text">📥 Export</span>
+            </button>
+            <button id="btn_clear_chat" class="kiosk-btn" title="Clear Chat Messages">
+              <span id="btn_clear_chat_text">🗑️ Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Gesture Staging Banner (Fills progress bar when holding gesture) -->
+        <div id="gesture_staging_bar" class="gesture-staging-bar">
+          <div class="staging-info">
+            <span class="staging-tag" id="staging_tag">ACTIVE GESTURE:</span>
+            <strong id="staging_gesture_name">Waiting for sign...</strong>
+            <span id="staging_conf_badge" class="staging-conf">--%</span>
+          </div>
+          <div class="staging-progress-track">
+            <div id="staging_progress_fill" class="staging-progress-fill"></div>
+          </div>
+          <span id="staging_status_text" class="staging-status-text">Hold to commit</span>
+        </div>
+
+        <!-- Chat Conversation Messages Feed -->
+        <div id="chat_messages" class="chat-messages-container" role="log" aria-live="polite">
+          <!-- Initial Welcome Message from AI Assistant -->
+          <div class="chat-msg assistant">
+            <div class="chat-msg-header">
+              <span class="sender-name">🤖 Counter #04 Interpreter</span>
+              <span class="msg-meta">System Ready</span>
+            </div>
+            <div class="chat-msg-body">
+              👋 <strong>Welcome to Sign Language Bridge!</strong> You can now use both hands (<strong>42 points</strong>) or one hand (<strong>21 points</strong>). Try gestures like <strong>Namaste 🙏</strong>, <strong>Heart ❤️</strong>, <strong>Double Thumbs 👍👍</strong>, <strong>Peace ✌️</strong>, or <strong>Hello ✋</strong>. Your gestures will be calculated in real-time and output directly here in this chatbox!
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Composer & Live Input Bar -->
+        <div class="chat-input-row">
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="chat_input"
+              class="chat-text-input"
+              placeholder="Real-time gesture buffers here (or type message)..."
+              autocomplete="off"
+            />
+          </div>
+          <div class="button-group">
+            <button id="btn_send_chat" class="kiosk-btn active send-btn" title="Send to Chatbox">
+              <span id="btn_send_chat_text">Send 🚀</span>
+            </button>
+            <button id="btn_space" class="kiosk-btn" title="Add Space">
+              <span id="btn_space_text">Space</span>
+            </button>
+            <button id="btn_backspace" class="kiosk-btn" title="Backspace">
+              <span>⌫</span>
+            </button>
+            <button id="btn_speak_transcript" class="kiosk-btn" title="Speak Latest Message">
+              <span id="btn_speak_text">🔊 Speak</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- PUBLIC SERVICE KIOSK TELEMETRY & 126-COORDINATE PAYLOAD DOCK -->
+      <section class="telemetry-card">
+        <div class="endpoint-indicator">
+          <div class="endpoint-url">
+            <span class="endpoint-method">POST</span>
+            <span>http://localhost:3000/predict</span>
+          </div>
+          <span id="backend_latency" style="color: var(--accent-emerald);">-- ms</span>
+        </div>
+
+        <div class="card-label" style="margin-bottom: 0;">
+          <span id="telemetry_title">126-Coordinate Feature Payload (42 Points × 3D)</span>
+          <span id="payload_status" style="font-family: var(--font-mono); color: var(--text-muted);">Idle</span>
+        </div>
+
+        <div id="payload_preview" class="payload-preview" title="Live stream of flattened 126 coordinates sent to backend">
+          [ awaiting hand detection (0/42 points)... ]
+        </div>
+      </section>
+
+    </aside>
+
+  </main>
+
+  <!-- KIOSK FOOTER -->
+  <footer class="kiosk-footer">
+    <div class="footer-compliance">
+      <span id="footer_compliance">ADA & WCAG 2.1 Compliant Service Interface</span>
+      <span>•</span>
+      <span>Express Backend: <code style="color: var(--accent-cyan);">localhost:3000/predict</code></span>
+    </div>
+    <div>MediaPipe Tasks Vision 0.10.14 (CDN) • Vite Runtime</div>
+  </footer>
+
+  <!-- MAIN VITE JAVASCRIPT LOGIC -->
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
